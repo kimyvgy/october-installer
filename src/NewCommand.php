@@ -3,12 +3,15 @@
 namespace KimNH\OctoberInstaller\Console;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 use ZipArchive;
 
@@ -25,7 +28,6 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new OctoberCMS application')
             ->addArgument('name', InputArgument::OPTIONAL)
-            ->addOption('gui', null, InputOption::VALUE_NONE, 'Create by GUI installer')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -34,7 +36,6 @@ class NewCommand extends Command
      *
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return void
      * @throws RuntimeException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -49,16 +50,23 @@ class NewCommand extends Command
             $this->verifyApplicationDoesntExist($directory);
         }
 
-        $output->writeln('<info>Crafting application...</info>');
-        $this->download($zipFile = $this->makeFilename())
+        $io = new SymfonyStyle($input, $output);
+        $io->title('Welcome to OctoberCMS Installer');
+        $io->section('<info>Starting october installer</info>');
+        $io->text('[GET] https://octobercms.com/download');
+
+        $this->download($zipFile = $this->makeFilename(), new ProgressBar($output))
             ->extract($zipFile, $directory)
             ->cleanUp($zipFile);
 
-        if ($input->getOption('gui')) {
-            $this->makeDockerComposeFile($directory);
-        }
+        $this->makeDockerComposeFile($directory);
 
-        $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+        $io->newLine(2);
+        $io->section('<info>Flowing commands above to complete:</info>');
+        $io->text('cd '.basename($directory));
+        $io->text('docker-compose up -d');
+        $io->text('Open: http://localhost:8000/install.php');
+        $io->newLine();
     }
 
     /**
@@ -88,12 +96,30 @@ class NewCommand extends Command
      * Download the temporary Zip to the given file.
      *
      * @param  string $zipFile
+     * @param ProgressBar $progressBar
      * @return $this
+     * @throws \InvalidArgumentException
      */
-    protected function download($zipFile)
+    protected function download($zipFile, ProgressBar $progressBar)
     {
-        $response = (new Client)->get('https://octobercms.com/download');
+        $progressBar->setBarCharacter('<info>=</info>');
+        $progressBar->setEmptyBarCharacter(' ');
+        $progressBar->setProgressCharacter('>');
+        $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %elapsed:6s% %memory:6s%');
+        $progressBar->start();
+        $response = (new Client)->get('https://octobercms.com/download', [
+            RequestOptions::PROGRESS => function ($total, $downloaded) use ($progressBar) {
+                if (!$downloaded) {
+                    $progressBar->start($total);
+                }
+
+                $progressBar->setProgress($downloaded);
+            }
+        ]);
+
         file_put_contents($zipFile, $response->getBody());
+        $progressBar->finish();
+
         return $this;
     }
 
