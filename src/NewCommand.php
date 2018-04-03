@@ -157,6 +157,6 @@ class NewCommand extends Command
     protected function makeDockerComposeFile($directory)
     {
         $filesystem = new Filesystem();
-        $filesystem->copy(getcwd().'/'.'docker-compose.yml', $directory.'/docker-compose.yml');
+        $filesystem->copy(__DIR__.'/../docker-compose.yml', $directory.'/docker-compose.yml');
     }
 }
