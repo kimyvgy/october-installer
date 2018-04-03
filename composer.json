@@ -1,0 +1,26 @@
+{
+    "name": "huukimit/october-installer",
+    "description": "OctoberCMS installer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nguyen Huu Kim",
+            "email": "kimnguyen.ict@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "KimNH\\OctoberInstaller\\Console\\": "src/"
+        }
+    },
+    "require": {
+        "symfony/console": "^4.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "symfony/filesystem": "^4.0",
+        "symfony/process": "^4.0",
+        "ext-zip": "^1.13"
+    },
+    "bin": [
+        "october"
+    ]
+}

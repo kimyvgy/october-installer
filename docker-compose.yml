@@ -1,0 +1,27 @@
+version: '3'
+services:
+    workspace:
+        container_name: october_workspace
+        image: kimnguyen/docker-apache-php
+        restart: always
+        tty: true
+        ports:
+            - "${APP_PORT:-8000}:80"
+        volumes:
+            - ./:/var/www/html
+
+    mysql:
+        container_name: october_db
+        image: mysql
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-docker}
+            MYSQL_USER: ${DB_USERNAME:-docker}
+            MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+        expose:
+            - "${DB_PORT:-3306}"
+        links:
+            - workspace
+        volumes:
+            - .docker/mysql:/var/lib/mysql
+        restart: always
