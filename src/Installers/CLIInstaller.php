@@ -31,7 +31,7 @@ class CLIInstaller
         $io->newLine();
         $io->section('<info>October is installed at: '.$directory.'</info>');
         $agree = $io->confirm(
-            '<comment>Do you want set up this application such as: Database, admin?</comment>',
+            '<comment>Do you want set up this application such as: Composer, Database, admin?</comment>',
             false
         );
 
@@ -39,6 +39,7 @@ class CLIInstaller
             $commands = [
                 $this->findComposer().' install',
                 '"'.PHP_BINARY.'" artisan october:install',
+                '"'.PHP_BINARY.'" artisan october:update',
             ];
             $process = new Process(implode(' && ', $commands), $directory);
             if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
@@ -48,6 +49,16 @@ class CLIInstaller
             $process->run(function ($__, $line) use ($io) {
                 $io->write($line);
             });
+        } else {
+            $io->section('<info>Flowing commands above to complete:</info>');
+            $io->listing([
+                'cd '.basename($directory),
+                'composer install',
+                'docker-compose up -d',
+                'docker exec -it october_workspace bash',
+                'php artisan october:install',
+                'php artisan october:update',
+            ]);
         }
     }
 
