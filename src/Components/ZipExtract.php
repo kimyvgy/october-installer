@@ -35,7 +35,9 @@ class ZipExtract
         // Move contents to main directory:
         if ($this->subDirectory) {
             system("mv {$directory}/{$this->subDirectory}/* {$directory}");
-            system("rm -rf {$directory}/{$this->subDirectory}");
+            system("mv {$directory}/{$this->subDirectory}/.htaccess {$directory}");
+            system("mv {$directory}/{$this->subDirectory}/.git* {$directory}");
+            system("mv {$directory}/{$this->subDirectory}/.travis.yml {$directory}");
         }
 
         return $this;

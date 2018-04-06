@@ -53,6 +53,7 @@ class NewCommand extends Command
         $io->title('WELCOME TO OCTOBER CMS INSTALLER! ^^ <3 <3 <3');
 
         $this->makeDockerComposeFile($directory);
+
         if ($input->getOption('gui')) {
             (new GUIInstaller)->execute($io, $directory);
         } else {
